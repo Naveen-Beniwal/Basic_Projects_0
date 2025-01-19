@@ -1,0 +1,615 @@
+<!-- <!DOCTYPE html>
+<html>
+  <head>
+    <title>iCell - Innovation Hub</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Poppins", sans-serif;
+      }
+
+      body {
+        background: #0a0a0a;
+        color: white;
+        cursor: none;
+        overflow: hidden;
+      }
+
+      nav {
+        position: fixed;
+        top: 30px;
+        right: 50px;
+        z-index: 100;
+      }
+
+      nav a {
+        color: white;
+        text-decoration: none;
+        margin-left: 30px;
+        font-size: 18px;
+        opacity: 0.7;
+        transition: opacity 0.3s;
+      }
+
+      nav a:hover {
+        opacity: 1;
+      }
+
+      .cursor-ring {
+        width: 40px;
+        height: 40px;
+        border: 2px solid rgba(255, 255, 255, 0.8);
+        border-radius: 50%;
+        position: fixed;
+        pointer-events: none;
+        z-index: 9999;
+        mix-blend-mode: difference;
+        transition: transform 0.15s ease;
+      }
+
+      .cursor-dot {
+        width: 8px;
+        height: 8px;
+        background: white;
+        border-radius: 50%;
+        position: fixed;
+        pointer-events: none;
+        z-index: 9999;
+        mix-blend-mode: difference;
+      }
+
+      .cursor-trail {
+        position: fixed;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 9998;
+      }
+
+      .bubble {
+        position: absolute;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(5px);
+        border-radius: 50%;
+        transition: transform 0.3s ease;
+      }
+
+      .title {
+        font-size: 15vw;
+        font-weight: 800;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: transparent;
+        -webkit-text-stroke: 2px white;
+        transition: all 0.3s ease;
+      }
+
+      .subtitle {
+        position: absolute;
+        top: 65%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 1.5rem;
+        opacity: 0.7;
+      }
+
+      #game-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+      }
+
+      canvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        pointer-events: none;
+      }
+    </style>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;800&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <nav>
+      <a href="#home">Home</a>
+      <a href="#teams">Teams</a>
+      <a href="#events">Events</a>
+    </nav>
+    <div class="cursor-ring"></div>
+    <div class="cursor-dot"></div>
+    <canvas class="cursor-trail"></canvas>
+    <div id="game-container"></div>
+    <h1 class="title">iCell</h1>
+    <p class="subtitle">Where Innovation Meets Play</p>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.18.0/matter.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+      // Cursor trail effect
+      const trail = document.querySelector(".cursor-trail");
+      const ctx = trail.getContext("2d");
+      let particles = [];
+
+      function resizeCanvas() {
+        trail.width = window.innerWidth;
+        trail.height = window.innerHeight;
+      }
+      resizeCanvas();
+
+      class Particle {
+        constructor(x, y, speed) {
+          this.x = x;
+          this.y = y;
+          this.size = speed * 2;
+          this.speedX = (Math.random() - 0.5) * speed;
+          this.speedY = (Math.random() - 0.5) * speed;
+          this.life = 1;
+        }
+
+        update() {
+          this.x += this.speedX;
+          this.y += this.speedY;
+          this.life -= 0.02;
+          this.size *= 0.95;
+        }
+
+        draw() {
+          ctx.fillStyle = `rgba(255,255,255,${this.life})`;
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      // Physics setup
+      const engine = Matter.Engine.create();
+      const render = Matter.Render.create({
+        element: document.getElementById("game-container"),
+        engine: engine,
+        options: {
+          width: window.innerWidth,
+          height: window.innerHeight,
+          wireframes: false,
+          background: "transparent",
+        },
+      });
+
+      // Cursor elements
+      const cursorRing = document.querySelector(".cursor-ring");
+      const cursorDot = document.querySelector(".cursor-dot");
+      let mouseX = 0,
+        mouseY = 0;
+      let lastMouseX = 0,
+        lastMouseY = 0;
+      let ringX = 0,
+        ringY = 0;
+      let speed = 0;
+
+      // Create physics bodies
+      const bubbles = [];
+      for (let i = 0; i < 20; i++) {
+        const radius = Matter.Common.random(20, 50);
+        const bubble = Matter.Bodies.circle(
+          Matter.Common.random(0, window.innerWidth),
+          Matter.Common.random(0, window.innerHeight),
+          radius,
+          {
+            friction: 0,
+            frictionAir: 0.02,
+            restitution: 0.8,
+            render: {
+              fillStyle: `rgba(255,255,255,${Matter.Common.random(0.1, 0.3)})`,
+              strokeStyle: "white",
+              lineWidth: 2,
+            },
+          }
+        );
+        bubbles.push(bubble);
+      }
+
+      Matter.World.add(engine.world, bubbles);
+      Matter.Engine.run(engine);
+      Matter.Render.run(render);
+
+      // Mouse movement handler
+      document.addEventListener("mousemove", (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+
+        // Calculate speed
+        speed = Math.sqrt(
+          Math.pow(mouseX - lastMouseX, 2) + Math.pow(mouseY - lastMouseY, 2)
+        );
+
+        // Create particles based on speed
+        if (speed > 5) {
+          for (let i = 0; i < speed / 2; i++) {
+            particles.push(new Particle(mouseX, mouseY, speed / 10));
+          }
+        }
+
+        lastMouseX = mouseX;
+        lastMouseY = mouseY;
+      });
+
+      function updateCursor() {
+        // Update cursor position
+        ringX += (mouseX - ringX) * 0.15;
+        ringY += (mouseY - ringY) * 0.15;
+        cursorRing.style.transform = `translate(${ringX - 20}px, ${
+          ringY - 20
+        }px)`;
+        cursorDot.style.transform = `translate(${mouseX - 4}px, ${
+          mouseY - 4
+        }px)`;
+
+        // Update particles
+        ctx.clearRect(0, 0, trail.width, trail.height);
+        particles = particles.filter((p) => p.life > 0);
+        particles.forEach((p) => {
+          p.update();
+          p.draw();
+        });
+
+        // Attract bubbles
+        bubbles.forEach((bubble) => {
+          const dx = mouseX - bubble.position.x;
+          const dy = mouseY - bubble.position.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+
+          if (distance < 200) {
+            const force = 0.001;
+            Matter.Body.applyForce(bubble, bubble.position, {
+              x: dx * force,
+              y: dy * force,
+            });
+          }
+        });
+
+        requestAnimationFrame(updateCursor);
+      }
+      updateCursor();
+
+      // Click handler
+      document.addEventListener("click", () => {
+        bubbles.forEach((bubble) => {
+          Matter.Body.setVelocity(bubble, {
+            x: (Math.random() - 0.5) * 10,
+            y: -10,
+          });
+        });
+
+        // Burst effect
+        for (let i = 0; i < 20; i++) {
+          particles.push(new Particle(mouseX, mouseY, 20));
+        }
+      });
+
+      // Resize handler
+      window.addEventListener("resize", () => {
+        resizeCanvas();
+        render.canvas.width = window.innerWidth;
+        render.canvas.height = window.innerHeight;
+        Matter.Render.setPixelRatio(render, window.devicePixelRatio);
+      });
+    </script>
+  </body>
+</html> -->
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>iCell - Innovation Hub</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Poppins", sans-serif;
+      }
+
+      body {
+        background: #0a0a0a;
+        color: white;
+        cursor: none;
+        overflow: hidden;
+      }
+
+      nav {
+        position: fixed;
+        top: 30px;
+        right: 50px;
+        z-index: 100;
+      }
+
+      nav a {
+        color: white;
+        text-decoration: none;
+        margin-left: 30px;
+        font-size: 18px;
+        opacity: 0.7;
+        transition: opacity 0.3s;
+      }
+
+      nav a:hover {
+        opacity: 1;
+      }
+
+      .cursor-ring {
+        width: 40px;
+        height: 40px;
+        border: 2px solid rgba(255, 255, 255, 0.8);
+        border-radius: 50%;
+        position: fixed;
+        pointer-events: none;
+        z-index: 9999;
+        mix-blend-mode: difference;
+        transition: transform 0.15s ease;
+      }
+
+      .cursor-dot {
+        width: 8px;
+        height: 8px;
+        background: white;
+        border-radius: 50%;
+        position: fixed;
+        pointer-events: none;
+        z-index: 9999;
+        mix-blend-mode: difference;
+      }
+
+      .cursor-trail {
+        position: fixed;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 9998;
+      }
+
+      .title {
+        font-size: 15vw;
+        font-weight: 800;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: transparent;
+        -webkit-text-stroke: 2px white;
+        transition: all 0.3s ease;
+      }
+
+      .subtitle {
+        position: absolute;
+        top: 65%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 1.5rem;
+        opacity: 0.7;
+      }
+
+      #game-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        transition: opacity 1s ease;
+      }
+    </style>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;800&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <nav>
+      <a href="#home">Home</a>
+      <a href="teams.html">Teams</a>
+      <a href="#events">Events</a>
+    </nav>
+    <div class="cursor-ring"></div>
+    <div class="cursor-dot"></div>
+    <canvas class="cursor-trail"></canvas>
+    <div id="game-container"></div>
+    <h1 class="title">iCell</h1>
+    <p class="subtitle">Where Innovation Meets Play</p>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.18.0/matter.min.js"></script>
+    <script>
+      const trail = document.querySelector(".cursor-trail");
+      const ctx = trail.getContext("2d");
+      let particles = [];
+
+      function resizeCanvas() {
+        trail.width = window.innerWidth;
+        trail.height = window.innerHeight;
+      }
+      resizeCanvas();
+
+      class Particle {
+        constructor(x, y, speed) {
+          this.x = x;
+          this.y = y;
+          this.size = speed * 2;
+          this.speedX = (Math.random() - 0.5) * speed;
+          this.speedY = (Math.random() - 0.5) * speed;
+          this.life = 1;
+        }
+
+        update() {
+          this.x += this.speedX;
+          this.y += this.speedY;
+          this.life -= 0.02;
+          this.size *= 0.95;
+        }
+
+        draw() {
+          ctx.fillStyle = `rgba(255,255,255,${this.life})`;
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      const engine = Matter.Engine.create();
+      const render = Matter.Render.create({
+        element: document.getElementById("game-container"),
+        engine: engine,
+        options: {
+          width: window.innerWidth,
+          height: window.innerHeight,
+          wireframes: false,
+          background: "transparent",
+        },
+      });
+
+      // Initialize cursor at center
+      let mouseX = window.innerWidth / 2;
+      let mouseY = window.innerHeight / 2;
+      let lastMouseX = mouseX;
+      let lastMouseY = mouseY;
+      let ringX = mouseX;
+      let ringY = mouseY;
+
+      // Controlled bubble spawning
+      const bubbles = [];
+      let bubbleCount = 0;
+      const maxBubbles = 20;
+
+      function spawnBubble() {
+        if (bubbleCount >= maxBubbles) return;
+
+        const angle = (bubbleCount / maxBubbles) * Math.PI * 2;
+        const distance = 100;
+        const x = window.innerWidth / 2 + Math.cos(angle) * distance;
+        const y = window.innerHeight / 2 + Math.sin(angle) * distance;
+
+        const radius = Matter.Common.random(20, 50);
+        const bubble = Matter.Bodies.circle(x, y, radius, {
+          friction: 0,
+          frictionAir: 0.02,
+          restitution: 0.8,
+          render: {
+            fillStyle: `rgba(255,255,255,${Matter.Common.random(0.1, 0.3)})`,
+            strokeStyle: "white",
+            lineWidth: 2,
+          },
+        });
+
+        const vx = Math.cos(angle) * 2;
+        const vy = Math.sin(angle) * 2;
+        Matter.Body.setVelocity(bubble, { x: vx, y: vy });
+
+        bubbles.push(bubble);
+        Matter.World.add(engine.world, bubble);
+        bubbleCount++;
+
+        if (bubbleCount < maxBubbles) {
+          setTimeout(spawnBubble, 100);
+        }
+      }
+
+      // Initialize physics with delay
+      document.addEventListener("DOMContentLoaded", () => {
+        const container = document.getElementById("game-container");
+        container.style.opacity = "0";
+
+        setTimeout(() => {
+          Matter.Engine.run(engine);
+          Matter.Render.run(render);
+          container.style.opacity = "1";
+          setTimeout(spawnBubble, 500);
+        }, 1000);
+      });
+
+      // Mouse movement handler
+      document.addEventListener("mousemove", (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+
+        const speed = Math.sqrt(
+          Math.pow(mouseX - lastMouseX, 2) + Math.pow(mouseY - lastMouseY, 2)
+        );
+
+        if (speed > 5) {
+          for (let i = 0; i < speed / 2; i++) {
+            particles.push(new Particle(mouseX, mouseY, speed / 10));
+          }
+        }
+
+        lastMouseX = mouseX;
+        lastMouseY = mouseY;
+      });
+
+      function updateCursor() {
+        ringX += (mouseX - ringX) * 0.15;
+        ringY += (mouseY - ringY) * 0.15;
+
+        const cursorRing = document.querySelector(".cursor-ring");
+        const cursorDot = document.querySelector(".cursor-dot");
+
+        cursorRing.style.transform = `translate(${ringX - 20}px, ${
+          ringY - 20
+        }px)`;
+        cursorDot.style.transform = `translate(${mouseX - 4}px, ${
+          mouseY - 4
+        }px)`;
+
+        ctx.clearRect(0, 0, trail.width, trail.height);
+        particles = particles.filter((p) => p.life > 0);
+        particles.forEach((p) => {
+          p.update();
+          p.draw();
+        });
+
+        bubbles.forEach((bubble) => {
+          const dx = mouseX - bubble.position.x;
+          const dy = mouseY - bubble.position.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+
+          if (distance < 200) {
+            const force = 0.001;
+            Matter.Body.applyForce(bubble, bubble.position, {
+              x: dx * force,
+              y: dy * force,
+            });
+          }
+        });
+
+        requestAnimationFrame(updateCursor);
+      }
+      updateCursor();
+
+      // Click handler
+      document.addEventListener("click", () => {
+        bubbles.forEach((bubble) => {
+          Matter.Body.setVelocity(bubble, {
+            x: (Math.random() - 0.5) * 10,
+            y: -10,
+          });
+        });
+
+        for (let i = 0; i < 20; i++) {
+          particles.push(new Particle(mouseX, mouseY, 20));
+        }
+      });
+
+      // Resize handler
+      window.addEventListener("resize", () => {
+        resizeCanvas();
+        render.canvas.width = window.innerWidth;
+        render.canvas.height = window.innerHeight;
+        Matter.Render.setPixelRatio(render, window.devicePixelRatio);
+      });
+    </script>
+  </body>
+</html>
