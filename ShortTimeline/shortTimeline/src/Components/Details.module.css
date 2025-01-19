@@ -1,8 +1,0 @@
-.outerContainer{
-    width: 90vw !important;
-    padding: 2rem;
-    display: flex;
-    flex-direction: column;
-    gap: 1vh;
-    align-items: center;
-}
