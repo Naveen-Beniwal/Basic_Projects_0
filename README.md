@@ -73,8 +73,10 @@ npm start
 # Access application
 Visit http://localhost:3000
 ```
+
 📌 Project Structure
 Markdown
+```
 project/
 │
 ├── views/                 # EJS templates
@@ -91,7 +93,7 @@ project/
 ├── models/              # MongoDB models
 └── app.js              # Main application file
 
-
+```
 🎯 Learning Outcomes
 Template Engine (EJS)
 
