@@ -1,7 +1,7 @@
 # 🎯 Pinterest-Style Image Upload - Learning Project
 
 <div align="center">
-  <img src="./demo.png" alt="Project Demo" width="600"/>
+
   
   > A beginner's image upload project built with EJS and JavaScript
   <br>
