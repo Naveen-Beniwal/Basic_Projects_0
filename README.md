@@ -19,10 +19,10 @@ This project was built during my initial web development learning phase, focusin
 
 javascript
 // Core Learning Points
-✅ EJS Templates
-✅ File uploads with Multer
-✅ Server-side rendering
-✅ Static file serving
+- ✅ EJS Templates
+- ✅ File uploads with Multer
+- ✅ Server-side rendering
+- ✅ Static file serving
 💻 Tech Stack
 Markdown
 Frontend:
