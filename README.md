@@ -119,24 +119,27 @@ Markdown
 5. Local database
 
 6. 
-📚 Learning Resources Used
-EJS Documentation
-Multer Guide
-Express.js Documentation
-MongoDB Basics
+- 📚 Learning Resources Used
+- EJS Documentation
+- Multer Guide
+- Express.js Documentation
+- MongoDB Basics
+- 
 🚀 Development Journey
 
 This project represents my early learning in:
 
-Template engines
-File uploads
-Database integration
+- Template engines
+- File uploads
+- Database integration
+
 Since then, I've progressed to more complex projects like:
 
-Netflix Clone
-Air Hockey Game
-👤 Connect With Me
-GitHub: Naveen-Beniwal
-Email: naveenbeniwal00001@gmail.com
-Built with EJS & ❤️ by Naveen Beniwal
-Created: Learning Phase | Last Updated: 2024-01-26
+
+- Netflix Clone
+- Air Hockey Game
+- 👤 Connect With Me
+- GitHub: Naveen-Beniwal
+- Email: naveenbeniwal00001@gmail.com
+- Built with EJS & ❤️ by Naveen Beniwal
+- Created: Learning Phase | Last Updated: 2024-01-26
